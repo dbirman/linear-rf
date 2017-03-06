@@ -4,6 +4,16 @@ startup
 cd ~/proj/linear-rf
 addpath(genpath(pwd))
 
+%% To-do list
+% Attention simulation (add attention and compute new timeseries via the
+% calculated weights)
+
+% pRF fit test (check that the pRF fits from the linear weighted
+% reconstructions match the originals)
+
+% pRF attention simulation (check what effect attention has on higher order
+% receptive fields)
+
 %% Load params file
 load(fullfile(datafolder_lrf,'pRFparams.mat'));
 pRF.ROIs = pRF.roiNames;
@@ -69,6 +79,17 @@ for mi = 1:length(mappings)
     roi_higher = cmap{2};
     
     map{mi} = voxel_mapping(pRF,roi_lower,roi_higher);
+end
+
+%% Test voxel mapping
+
+for mi = 1:length(mappings)
+    cmap = map{mi};
+    
+    % Get a random higher voxel, and then plot all it's lower voxels
+    for vh = 1%:size(cmap,1)
+        
+    end
 end
 
 %% Use voxel mapping to constrain lasso
