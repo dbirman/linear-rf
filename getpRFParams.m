@@ -7,7 +7,7 @@
 %     date: 03/05/2017
 %    input: 
 
-function pRF = getpRFParams(pRFAnalysis, roiName, scanNum)
+function pRF = getpRFParams(saveToBox)
 
 %% hardcoded inputs
 pRFAnalysis = 'pRF.mat';
@@ -20,14 +20,25 @@ v = loadAnalysis(v, ['pRFAnal/' pRFAnalysis]);
 pRF.d = viewGet(v, 'd', scanNum);
 pRF.concatInfo = viewGet(v, 'concatInfo', scanNum);
 pRF.scanDims = viewGet(v, 'scanDims');
-
 pRF.rfParams = pRF.d.params;
+pRF.r2 = pRF.d.r.^2;
+
+stimfile = viewGet(v, 'stimfile', scanNum);
+pRF.stimulus = stimfile{1}.stimulus;
 
 rois = loadROITSeries(v, pRF.roiNames);
 
 for i =1:length(pRF.roiNames)
+  tSeries = percentTSeries(rois{i}.tSeries, 'detrend', 'Linear', 'spatialNormalization', 'Divide by mean', 'subtractMean', 'Yes', 'temporalNormalization', 'No');
   pRF.(pRF.roiNames{i}).scanCoords = rois{i}.scanCoords;
-  pRF.(pRF.roiNames{i}).tSeries = rois{i}.tSeries;
+  pRF.(pRF.roiNames{i}).tSeries = tSeries;
 end
+
+if ~ieNotDefined('saveToBox')
+
+  save('/Users/akshay/Box Sync/LINEAR_RF/pRFparams.mat', 'pRF');
+  disp('Saved pRF struct to Box folder');
+end
+
 
 %keyboard
