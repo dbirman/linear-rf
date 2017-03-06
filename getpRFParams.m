@@ -5,8 +5,6 @@
 %
 %       by: akshay jagadeesh
 %     date: 03/05/2017
-%    input: 
-
 function pRF = getpRFParams(saveToBox)
 
 %% hardcoded inputs
