@@ -21,10 +21,10 @@ function w = prf_lasso(roi_data,timecourse)
 
 [b,stats] = lasso(roi_data',timecourse');
 best = find(stats.Lambda==min(stats.Lambda),1);
-w = b(:,best);
+w = b(:,best)';
 
 %% Figure
-
-h = figure; hold on
-plot(timecourse,'r');
-plot(w'*roi_data,'g');
+% 
+% h = figure; hold on
+% plot(timecourse,'r');
+% plot(w'*roi_data,'g');

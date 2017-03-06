@@ -33,5 +33,5 @@ for vh = 1:size(roi_higher.tSeries,1)
     include(vh,:) = distances < higher_params(3);
 end
 
-% figure
-% hist(sum(include,2))
+figure
+hist(sum(include,2))
