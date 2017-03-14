@@ -2,13 +2,12 @@
 %
 %
 %
-function [pregainParams, postgainParams] = fitRFs()
+function [pregainParams, postgainParams] = fitRFs(saveParams)
 
 % Load the forward pass computed pRFs
 pRF = load('~/Box Sync/LINEAR_RF/pRFparams_forward.mat');
 pRF = pRF.pRF;
 lV2 = pRF.lV2;
-
 
 %
 pRFAnalysis = 'pRF.mat';
@@ -34,7 +33,7 @@ parfor i = 1:numVoxels
   disp(sprintf('Voxel %d of %d', i, numVoxels));
   if any(lV2.tSeries_gain(i,:)~=0)
     x = lV2.scanCoords(1,i); y = lV2.scanCoords(2,i); z = lV2.scanCoords(3,i);
-    fit1 = pRFFit(v, [], x,y,z, 'tSeries', lV2.tSeries(i,:).', 'stim', d.stim, 'prefit', prefit,...
+    fit1 = pRFFit(v, [], x,y,z, 'tSeries', lV2.tSeries_orig(i,:).', 'stim', d.stim, 'prefit', prefit,...
                 'fitTypeParams', analysisParams.pRFFit, 'paramsInfo', d.paramsInfo, 'concatInfo', concatInfo);
     pregainParams(i,:) = fit1.params;
   
@@ -46,6 +45,6 @@ parfor i = 1:numVoxels
   end
 end
 
-keyboard
-
-
+if ~ieNotDefined('saveParams')
+  save('~/Box Sync/LINEAR_RF/fitLinParams.mat', 'pregainParams', 'postgainParams');
+end
