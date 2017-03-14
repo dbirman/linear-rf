@@ -9,11 +9,12 @@ function pRF = getpRFParams(saveToBox)
 
 %% hardcoded inputs
 pRFAnalysis = 'pRF.mat';
-scanNum = 1;
+scanNum = 2;
 pRF.roiNames = {'lV1', 'lV2', 'lV3', 'lV4', 'lV3a', 'lV3b', 'lV7', 'lMT', 'lLO1', 'lLO2'};
 
 v = newView;
-v = viewSet(v, 'curGroup', 'Averages');
+v = viewSet(v, 'curGroup', 'Concatenation');
+v = viewSet(v, 'curScan', scanNum);
 v = loadAnalysis(v, ['pRFAnal/' pRFAnalysis]);
 pRF.d = viewGet(v, 'd', scanNum);
 pRF.concatInfo = viewGet(v, 'concatInfo', scanNum);
@@ -22,7 +23,7 @@ pRF.rfParams = pRF.d.params;
 pRF.r2 = pRF.d.r.^2;
 
 stimfile = viewGet(v, 'stimfile', scanNum);
-pRF.stimulus = stimfile{1}.stimulus;
+pRF.stimulus = stimfile{1}{1}.stimulus;
 
 rois = loadROITSeries(v, pRF.roiNames);
 
@@ -34,7 +35,7 @@ end
 
 if ~ieNotDefined('saveToBox')
 
-  save('/Users/akshay/Box Sync/LINEAR_RF/pRFparams.mat', 'pRF');
+  save('/Users/akshay/Box Sync/LINEAR_RF/pRFparams_concat.mat', 'pRF');
   disp('Saved pRF struct to Box folder');
 end
 
