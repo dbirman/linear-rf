@@ -4,6 +4,20 @@ startup
 cd ~/proj/linear-rf
 addpath(genpath(pwd))
 
+%% NEW CODE
+
+CV = load(fullfile('~/Box Sync/LINEAR_RF/crossval.mat'));
+CV = CV.cv;
+
+CV = computeLinearWeights(CV,'v1','v2');
+
+
+
+
+
+
+%% ignore all this down below
+
 %% To-do list
 % Attention simulation (add attention and compute new timeseries via the
 % calculated weights)
