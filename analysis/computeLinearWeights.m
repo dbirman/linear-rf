@@ -18,11 +18,6 @@ function CV = computeLinearWeights( CV, lower, higher )
 %   quite large numbers of voxels to contribute, so we further regularize
 %   by using an elastic net regression to estimate the contribution of the
 %   lower voxels to the higher ROI. 
-%
-%   In a second pass we then run the forward model using the computed
-%   weights, and then repeat the forward model after applying a gain at
-%   location x=5 y=5 degrees with gaussian gain max 1.1%, standard
-%   deviation 3. 
 
 %% Identify folds
 folds_ = fields(CV);
@@ -70,28 +65,6 @@ hroi.(lower).weights = computeWeights(lroi,hroi,hroi.(lower).mapping);
 % ylabel('Higher ROI voxel')
 % set(gca,'XTick',[],'YTick',[]);
 % drawPublishAxis;
-
-%% Forward pass
-
-hroi.(lower).tSeries_forward = hroi.(lower).weights*lroi.train;
-
-%% Apply gain
-
-% attention gain parameters
-x = 5;
-y = 5;
-sd = 3;
-
-dx = abs(x-lroi.rfParams(:,1));
-dy = abs(y-lroi.rfParams(:,2));
-dist = hypot(dx,dy);
-% warning: this normalizes to a maximum 10% gain
-gain = 1 + normpdf(dist,0,sd) * 0.1 / normpdf(0,0,sd);
-
-lower_train_gain = repmat(gain,1,size(lroi.train,2)).*lroi.train;
-
-% Re-run forward pass with gain
-hroi.(lower).tSeries_gain = hroi.(lower).weights*lower_train_gain;
 
 %% Save and return
 
