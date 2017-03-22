@@ -12,8 +12,19 @@ addpath(genpath(pwd))
 % crossval_modelComparison.mat - R^2 computed on test timeseries
 
 %% Plotting functions
+% Initial:
+%   plotCV - compares intra-fold timeseries, and fold vs. test timeseries
+%   plotRF - draws original receptive fields
+% Weights:
+%   plotWeights - shows which RFs contribute to which voxel (somehow?)
+% Forward:
+%   plotForward
+% Params:
+%   drawRFchanges(preparams,postparams) - Draws RF shift arrows
+% Model comparison:
+%   R^2 plots?
 
-%% NEW CODE
+%% Run Weights
 
 CV = load(fullfile('~/Box Sync/LINEAR_RF/crossval.mat'));
 CV = CV.cv;
@@ -21,7 +32,7 @@ CV = CV.cv;
 CV = computeLinearWeights(CV,'v1','v2');
 
 
-%%
+%% Run Forward Model
 load(fullfile('~/Box Sync/LINEAR_RF/crossval_weights.mat'));
 CV = computeForwardGain(CV,'v1','v2');
  
