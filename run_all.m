@@ -3,6 +3,7 @@ cd ~/proj/gru
 startup
 cd ~/proj/linear-rf
 addpath(genpath(pwd))
+cd ~/Box' Sync'/LINEAR_RF/
 
 %% File structure
 % crossval.mat - CV folds, original pRF and timeseries
@@ -14,6 +15,7 @@ addpath(genpath(pwd))
 %% Plotting functions
 % Initial:
 %   plotCV - compares intra-fold timeseries, and fold vs. test timeseries
+plotCV('~/Box Sync/LINEAR_RF/crossval.mat','v1');
 %   plotRF - draws original receptive fields
 % Weights:
 %   plotWeights - shows which RFs contribute to which voxel (somehow?)
@@ -30,9 +32,11 @@ CV = load(fullfile('~/Box Sync/LINEAR_RF/crossval.mat'));
 CV = CV.cv;
 
 CV = computeLinearWeights(CV,'v1','v2');
+save(fullfile('~/Box Sync/LINEAR_RF/crossval_weights.mat'),'CV');
 
 
 %% Run Forward Model
 load(fullfile('~/Box Sync/LINEAR_RF/crossval_weights.mat'));
 CV = computeForwardGain(CV,'v1','v2');
+save(fullfile('~/Box Sync/LINEAR_RF/crossval_forward.mat'),'CV');
  
