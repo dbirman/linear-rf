@@ -1,3 +1,7 @@
+%% Shared run code
+% Authors: Dan Birman, Akshay Jagadeesh
+% Date: Spring, 2017
+
 %% Paths
 cd ~/proj/gru
 startup
