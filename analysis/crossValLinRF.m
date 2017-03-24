@@ -4,13 +4,16 @@
 %         by: akshay jagadeesh
 %       date: 03/14/2017
 %
-function crossVal = crossValLinRF()
+%      input:
+%           - roiNames: e.g. {'lV1', 'lV2', 'lV3'}
+%           - saveCV (optional) - set to 1 if you want to save struct to Box
+function crossVal = crossValLinRF(roiNames, saveCV)
 
 % inputs
 scanNum = 2;
 pRFAnalysis = 'pRF.mat';
 %roiNames = {'lV1', 'lV2', 'lV3', 'lV4', 'lV3a', 'lV3b', 'lV7', 'lMT', 'lLO1', 'lLO2'};
-roiNames = {'lV1', 'lV2'};
+%roiNames = {'lV1', 'lV2'};
 
 % init mlr and get variables
 v = newView;
@@ -31,130 +34,75 @@ ogn2 = viewGet(v, 'originalgroupname', osn, ogn{1}); % Get the motioncomp scans
 osn2 = viewGet(v, 'originalscannum', osn, ogn{1});
 numScans = length(osn2);
 
-keyboard
 % Load time series data for each MotionComp scan for each ROI
 scans = loadROITSeries(v, roiNames, osn2, ogn2{1},'straightXform=1'); % Length: numScans * numRois
 
 % init crossVal struct
 crossVal.numScans = numScans;
 leftOut = [1 2; 3 4; 5 6; 7 8];
-v1_size = size(scans{1}.tSeries);
-v1Coords = scans{1}.scanCoords;
-v2_size = size(scans{9}.tSeries);
-v2Coords = scans{9}.scanCoords;
 
-% First cross validate V1.
-for fold = 1:size(leftOut,1)
-  disp(sprintf('Fold %i of %i: Left Out Set = [%i, %i]', fold, size(leftOut,1), leftOut(fold,1), leftOut(fold,2)));
-  foldStr = sprintf('fold%d',fold);
-  crossVal.(foldStr).heldOut = leftOut(fold,:);
-  train = zeros(v1_size); trainFilt = zeros(v1_size);
-  test = zeros(v1_size); testFilt = zeros(v1_size);
-  for scanIdx = 1:numScans
-    thisScan = scans{scanIdx};
-    if ~any(scanIdx==leftOut(fold,:))
-      train = train + thisScan.tSeries;
-    %  disp('train');
-    else
-      test = test + thisScan.tSeries;
-    %  disp('test');
+for roiIdx = 1:length(roiNames)
+  firstScan = numScans*(roiIdx-1)+1;
+  roi_size = size(scans{firstScan}.tSeries);
+  roiCoords = scans{firstScan}.scanCoords;
+  for fold = 1:size(leftOut,1)
+    disp(sprintf('Fold %i of %i: Left Out Set = [%i, %i]', fold, size(leftOut,1), leftOut(fold,1), leftOut(fold,2)));
+    foldStr = sprintf('fold%d',fold);
+    crossVal.(foldStr).heldOut = leftOut(fold,:);
+    train = zeros(roi_size); trainFilt = zeros(roi_size);
+    test = zeros(roi_size); testFilt = zeros(roi_size);
+    for scanIdx = 1:numScans
+      roiScanIdx = scanIdx + numScans*(roiIdx-1);
+      thisScan = scans{roiScanIdx};
+      if ~any(scanIdx==leftOut(fold,:))
+        train = train + thisScan.tSeries;
+      else
+        test = test + thisScan.tSeries;
+      end
     end
+
+    train = train./6;
+    test = test./2;
+
+    % apply concat filtering to averages & left out
+    for k = 1:roi_size(1)
+      trainFilt(k,:) = applyConcatFiltering(train(k,:), concatInfo, 1);
+      testFilt(k,:) = applyConcatFiltering(test(k,:), concatInfo, 1);
+    end
+
+    crossVal.(foldStr).(roiNames{roiIdx}).train = trainFilt;
+    crossVal.(foldStr).(roiNames{roiIdx}).test = testFilt;
+
+    allModelFits = nan(roi_size(1), 3);
+
+    prefitParams = analysisParams.pRFFit;
+    prefitParams.prefitOnly = 1;
+    prefit = pRFFit(v, [], roiCoords(1,1), roiCoords(2,1), roiCoords(3,1), 'tSeries', trainFilt(1,:)', 'stim', d.stim,...
+                    'fitTypeParams', prefitParams, 'paramsInfo', d.paramsInfo, 'concatInfo', concatInfo);
+
+    global gpRFFitTypeParams;
+    pre = gpRFFitTypeParams.prefit;
+                    
+    % Run pRFFit on trainFilt and get ROI RF params
+    parfor i = 1:roi_size(1)
+      x = roiCoords(1,i); y = roiCoords(2,i); z = roiCoords(3,i);
+      modelFit = pRFFit(v, [], x,y,z, 'tSeries', trainFilt(i,:)', 'stim', d.stim,...
+                        'fitTypeParams', analysisParams.pRFFit, 'paramsInfo', d.paramsInfo,...
+                        'prefit', pre, 'concatInfo', concatInfo);
+      allModelFits(i,:) = modelFit.params;
+      disp(sprintf('Completed fitting voxel %i of %i', i, roi_size(1)));
+    end
+
+    % Save in crossVal.(foldStr).(roiName).rfParams
+    crossVal.(foldStr).(roiNames{roiIdx}).rfParams = allModelFits;
+
   end
-
-  train = train./6;
-  test = test./2;
-
-  % apply concat filtering to averages & left out
-  for k = 1:v1_size(1)
-    trainFilt(k,:) = applyConcatFiltering(train(k,:), concatInfo, 1);
-    testFilt(k,:) = applyConcatFiltering(test(k,:), concatInfo, 1);
-  end
-
-  crossVal.(foldStr).v1_train = trainFilt;
-  crossVal.(foldStr).v1_test = testFilt;
-
-  allModelFits = nan(v1_size(1), 3);
-
-  prefitParams = analysisParams.pRFFit;
-  prefitParams.prefitOnly = 1;
-  prefit = pRFFit(v, [], v1Coords(1,1), v1Coords(2,1), v1Coords(3,1), 'tSeries', trainFilt(1,:)', 'stim', d.stim,...
-                  'fitTypeParams', prefitParams, 'paramsInfo', d.paramsInfo, 'concatInfo', concatInfo);
-
-  global gpRFFitTypeParams;
-  pre = gpRFFitTypeParams.prefit;
-                  
-  % Run pRFFit on trainFilt and get v1 RF params
-  parfor i = 1:v1_size(1)
-    x = v1Coords(1,i); y = v1Coords(2,i); z = v1Coords(3,i);
-    modelFit = pRFFit(v, [], x,y,z, 'tSeries', trainFilt(i,:)', 'stim', d.stim,...
-                      'fitTypeParams', analysisParams.pRFFit, 'paramsInfo', d.paramsInfo,...
-                      'prefit', pre, 'concatInfo', concatInfo);
-    allModelFits(i,:) = modelFit.params;
-    disp(sprintf('Completed fitting voxel %i of %i', i, v1_size(1)));
-  end
-
-  % Save in crossVal.(foldStr).v1_rfParams
-  crossVal.(foldStr).v1.rfParams = allModelFits;
-
 end
 
-
-% Then do cross validating on V2
-for fold = 1:size(leftOut,1)
-  foldStr = sprintf('fold%d',fold);
-  crossVal.(foldStr).heldOut = leftOut(fold,:);
-  train = zeros(v2_size); trainFilt = zeros(v2_size);
-  test = zeros(v2_size); testFilt = zeros(v2_size);
-  for scanIdx = 9:numScans*2
-    thisScan = scans{scanIdx};
-    if ~any(scanIdx==leftOut(fold,:))
-      train = train + thisScan.tSeries;
-    else
-      test = test + thisScan.tSeries;
-    end
-  end
-
-  train = train./6;
-  test = test./2;
-
-  % apply concat filtering to averages & left out
-  for k = 1:v2_size(1)
-    trainFilt(k,:) = applyConcatFiltering(train(k,:), concatInfo, 1);
-    testFilt(k,:) = applyConcatFiltering(test(k,:), concatInfo, 1);
-  end
-
-  crossVal.(foldStr).v2.train = trainFilt;
-  crossVal.(foldStr).v2.test = testFilt;
-
-  allModelFits = nan(v2_size(1), 3);
-
-  prefitParams = analysisParams.pRFFit;
-  prefitParams.prefitOnly = 1;
-  prefit = pRFFit(v, [], v2Coords(1,1), v2Coords(2,1), v2Coords(3,1), 'tSeries', trainFilt(1,:)', 'stim', d.stim,...
-                  'fitTypeParams', prefitParams, 'paramsInfo', d.paramsInfo, 'concatInfo', concatInfo);
-
-  global gpRFFitTypeParams;
-  pre = gpRFFitTypeParams.prefit;
-                  
-  % Run pRFFit on trainFilt and get v2 RF params
-  parfor i = 1:v2_size(1)
-    x = v2Coords(1,i); y = v2Coords(2,i); z = v2Coords(3,i);
-    modelFit = pRFFit(v, [], x,y,z, 'tSeries', trainFilt(i,:)', 'stim', d.stim,...
-                      'fitTypeParams', analysisParams.pRFFit, 'paramsInfo', d.paramsInfo,...
-                      'prefit', pre, 'concatInfo', concatInfo);
-    allModelFits(i,:) = modelFit.params;
-    disp(sprintf('Completed fitting voxel %i of %i', i, v2_size(1)));
-  end
-
-  % Save in crossVal.(foldStr).v2_rfParams
-  crossVal.(foldStr).v2.rfParams = allModelFits;
-
+if ~ieNotDefined('saveCV')
+  CV = crossVal;
+  save('~/Box Sync/LINEAR_RF/crossval.mat', 'CV');
 end
-
-
-
-keyboard
-
 
 
 function tSeries = applyConcatFiltering(tSeries,concatInfo,runnum)
