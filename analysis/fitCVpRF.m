@@ -5,16 +5,19 @@
 %
 %
 %
-function cv = fitCVpRF(saveParams)
+function cv = fitCVpRF(cv, lower, upper, saveParams)
 
 % inputs
 pRFAnalysis = 'pRF.mat';
 scanNum = 2;
-upper = 'v2'; lower='v1';
+%upper = 'v2'; lower='v1';
 
 % Load the forward pass computed pRFs
-crossval = load('~/Box Sync/LINEAR_RF/crossval_forward.mat');
-cv = crossval.CV;
+if ieNotDefined('cv');
+  crossval = load('~/Box Sync/LINEAR_RF/crossval_forward.mat');
+  cv = crossval.CV;
+  upper = 'lV2'; lower='lV1';
+end
 
 % get the struct subfields
 f = fields(cv); f = f(2:end);
@@ -76,6 +79,7 @@ for i = 1:length(f)
 end
 
 if ~ieNotDefined('saveParams')
-  save('~/Box Sync/LINEAR_RF/crossval_params.mat', 'cv');
+  CV = cv;
+  save('~/Box Sync/LINEAR_RF/crossval_params.mat', 'CV');
   disp('cv saved to crossval_forwardParams.mat');
 end
