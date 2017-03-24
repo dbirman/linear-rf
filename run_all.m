@@ -26,10 +26,14 @@ plotCV('~/Box Sync/LINEAR_RF/crossval.mat','v1');
 % Model comparison:
 %   R^2 plots?
 
-%% Run Weights
+%% Split data up into 4 folds, run pRFFit on each fold to get params, and get the CV struct
+rois = {'lV1', 'lV2'};
+CV = crossValLinRF(rois);
+save(fullfile('~/Box Sync/LINEAR_RF/crossval.mat'), 'CV');
 
+%% Run Weights
 CV = load(fullfile('~/Box Sync/LINEAR_RF/crossval.mat'));
-CV = CV.cv;
+CV = CV.CV;
 
 CV = computeLinearWeights(CV,'v1','v2');
 save(fullfile('~/Box Sync/LINEAR_RF/crossval_weights.mat'),'CV');
@@ -39,4 +43,9 @@ save(fullfile('~/Box Sync/LINEAR_RF/crossval_weights.mat'),'CV');
 load(fullfile('~/Box Sync/LINEAR_RF/crossval_weights.mat'));
 CV = computeForwardGain(CV,'v1','v2');
 save(fullfile('~/Box Sync/LINEAR_RF/crossval_forward.mat'),'CV');
- 
+
+
+%% Get pRF fit params for each of the folds after running forward model
+CV = fitCVpRF(CV, 'lV1', 'lV2');
+save(fullfile('~/Box Sync/LINEAR_RF/crossval_params.mat'), 'CV');
+
