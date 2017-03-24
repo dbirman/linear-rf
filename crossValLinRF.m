@@ -31,6 +31,7 @@ ogn2 = viewGet(v, 'originalgroupname', osn, ogn{1}); % Get the motioncomp scans
 osn2 = viewGet(v, 'originalscannum', osn, ogn{1});
 numScans = length(osn2);
 
+keyboard
 % Load time series data for each MotionComp scan for each ROI
 scans = loadROITSeries(v, roiNames, osn2, ogn2{1},'straightXform=1'); % Length: numScans * numRois
 
@@ -122,8 +123,8 @@ for fold = 1:size(leftOut,1)
     testFilt(k,:) = applyConcatFiltering(test(k,:), concatInfo, 1);
   end
 
-  crossVal.(foldStr).v2_train = trainFilt;
-  crossVal.(foldStr).v2_test = testFilt;
+  crossVal.(foldStr).v2.train = trainFilt;
+  crossVal.(foldStr).v2.test = testFilt;
 
   allModelFits = nan(v2_size(1), 3);
 
