@@ -28,6 +28,10 @@ plotCV('~/Box Sync/LINEAR_RF/crossval.mat','lV1');
 % Params:
 %   drawRFchanges(preparams,postparams) - Draws RF shift arrows
 % Model comparison:
+plotRFChanges('~/Box Sync/LINEAR_RF/crossval_params.mat','fold1','lV1','lV2');
+plotRFChanges('~/Box Sync/LINEAR_RF/crossval_params.mat','fold2','lV1','lV2');
+plotRFChanges('~/Box Sync/LINEAR_RF/crossval_params.mat','fold3','lV1','lV2');
+plotRFChanges('~/Box Sync/LINEAR_RF/crossval_params.mat','fold4','lV1','lV2');
 %   R^2 plots?
 
 %% Split data up into 4 folds, run pRFFit on each fold to get params, and get the CV struct
@@ -38,18 +42,18 @@ rois = {'lV1', 'lV2'};
 %% Run Weights
 CV = load(fullfile('~/Box Sync/LINEAR_RF/crossval.mat'));
 CV = CV.CV;
-
 CV = computeLinearWeights(CV,'lV1','lV2');
 save(fullfile('~/Box Sync/LINEAR_RF/crossval_weights.mat'),'CV');
 
 
 %% Run Forward Model
 load(fullfile('~/Box Sync/LINEAR_RF/crossval_weights.mat'));
-CV = computeForwardGain(CV,'lV1','lV2');
+CV = computeForwardGain(CV,'lV1','lV2',0.1,5,5,5);
 save(fullfile('~/Box Sync/LINEAR_RF/crossval_forward.mat'),'CV');
 
 
 %% Get pRF fit params for each of the folds after running forward model
+load(fullfile('~/Box Sync/LINEAR_RF/crossval_forward.mat'));
 CV = fitCVpRF(CV, 'lV1', 'lV2');
 save(fullfile('~/Box Sync/LINEAR_RF/crossval_params.mat'), 'CV');
 

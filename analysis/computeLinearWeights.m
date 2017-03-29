@@ -30,7 +30,7 @@ for fi = 1:length(folds_)
 end
 
 %% For each fold
-for fi = 1:length(folds)
+parfor fi = 1:length(folds)
     CV.(folds{fi}) = computeFoldWeights(CV.(folds{fi}),lower,higher);
 end
 

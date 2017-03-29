@@ -10,7 +10,6 @@ function plotCV( fname, roi )
 
 %% Load file
 load(fname);
-CV = cv;
 
 %% Identify folds
 folds_ = fields(CV);
