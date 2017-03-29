@@ -1,4 +1,4 @@
-function CV = computeForwardGain( CV, lower, higher )
+function CV = computeForwardGain( CV, lower, higher, gain ,x,y,sd)
 %COMPUTELINEARWEIGHTS Linear weighting via lasso from lower to higher ROI
 %
 % INPUT
@@ -43,15 +43,15 @@ hroi.(lower).tSeries_forward = tweights*lroi.train;
 %% Apply gain
 
 % attention gain parameters
-x = 5;
-y = 5;
-sd = 3;
+% x = 5;
+% y = 5;
+% sd = 3;
 
 dx = abs(x-lroi.rfParams(:,1));
 dy = abs(y-lroi.rfParams(:,2));
 dist = hypot(dx,dy);
 % warning: this normalizes to a maximum 10% gain
-gain = 1 + normpdf(dist,0,sd) * 0.1 / normpdf(0,0,sd);
+gain = 1 + normpdf(dist,0,sd) * gain / normpdf(0,0,sd);
 
 lower_train_gain = repmat(gain,1,size(lroi.train,2)).*lroi.train;
 
