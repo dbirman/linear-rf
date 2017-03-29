@@ -26,10 +26,10 @@ end
 
 %% For each fold
 for fi = 1:length(folds)
-    CV.(folds{fi}) = computeFoldGain(CV.(folds{fi}),lower,higher);
+    CV.(folds{fi}) = computeFoldGain(CV.(folds{fi}),lower,higher, gain,x,y,sd);
 end
 
-function fold = computeFoldGain(fold,lower,higher)
+function fold = computeFoldGain(fold,lower,higher, gain,x,y,sd)
 
 lroi = fold.(lower);
 hroi = fold.(higher);
