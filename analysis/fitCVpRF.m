@@ -32,23 +32,21 @@ concatInfo = viewGet(v, 'concatInfo', scanNum);
 d = viewGet(v, 'd', scanNum);
 analysisParams = viewGet(v, 'analysisParams');
 numVoxels = size(cv.fold1.(upper).train,1);
-lV2 = loadROITSeries(v,'lV2',[],[],'straightXform=1','loadType=none');
+lV2 = loadROITSeries(v,upper,[],[],'straightXform=1','loadType=none');
 
 % Compute prefit and save it
 prefitParams = analysisParams.pRFFit; prefitParams.prefitOnly=1;
 pre = pRFFit(v, [], lV2.scanCoords(1,1), lV2.scanCoords(2,1), lV2.scanCoords(3,1), 'tSeries', cv.(f{1}).(upper).(lower).tSeries_forward(2,:)',...
                 'stim', d.stim, 'fitTypeParams', prefitParams, 'paramsInfo', d.paramsInfo, 'concatInfo', concatInfo);
 
-keyboard
 
+for fi = 1:length(f)
 
-for i = 1:length(f)
-
-  disp(sprintf('Fold %i of %i: Computing rfParams', i, length(f)));
+  disp(sprintf('Fold %i of %i: Computing rfParams', fi, length(f)));
 
   % Get pregain and postgain time series
-  tSeries_forward = cv.(f{i}).(upper).(lower).tSeries_forward;
-  tSeries_gain = cv.(f{i}).(upper).(lower).tSeries_gain;
+  tSeries_forward = cv.(f{fi}).(upper).(lower).tSeries_forward;
+  tSeries_gain = cv.(f{fi}).(upper).(lower).tSeries_gain;
 
   % Get global prefit
   global gpRFFitTypeParams;
@@ -57,29 +55,29 @@ for i = 1:length(f)
   % run pRFFit and generate RF params for the two time series
   pregainParams = nan(numVoxels,3);
   postgainParams = nan(numVoxels,3);
-  parfor i = 1:numVoxels
-    disp(sprintf('Voxel %d of %d', i, numVoxels));
+  parfor vi = 1:numVoxels
+    disp(sprintf('Voxel %d of %d', vi, numVoxels));
     if ~any(isnan(tSeries_gain))
-      x = lV2.scanCoords(1,i); y = lV2.scanCoords(2,i); z = lV2.scanCoords(3,i);
-      fit1 = pRFFit(v, [], x,y,z, 'tSeries', tSeries_forward(i,:).', 'stim', d.stim, 'prefit', prefit,...
+      x = lV2.scanCoords(1,vi); y = lV2.scanCoords(2,vi); z = lV2.scanCoords(3,vi);
+      fit1 = pRFFit(v, [], x,y,z, 'tSeries', tSeries_forward(vi,:).', 'stim', d.stim, 'prefit', prefit,...
                   'fitTypeParams', analysisParams.pRFFit, 'paramsInfo', d.paramsInfo, 'concatInfo', concatInfo);
-      pregainParams(i,:) = fit1.params;
+      pregainParams(vi,:) = fit1.params;
 
-      fit2 = pRFFit(v, [], x,y,z, 'tSeries', tSeries_gain(i,:).', 'stim', d.stim, 'prefit', prefit,...
+      fit2 = pRFFit(v, [], x,y,z, 'tSeries', tSeries_gain(vi,:).', 'stim', d.stim, 'prefit', prefit,...
                   'fitTypeParams', analysisParams.pRFFit, 'paramsInfo', d.paramsInfo, 'concatInfo', concatInfo);
-      postgainParams(i,:) = fit2.params;
+      postgainParams(vi,:) = fit2.params;
     else
       disp('Skipping voxel');
     end
   end
 
-  cv.(f{i}).(upper).(lower).paramsForward = pregainParams;
-  cv.(f{i}).(upper).(lower).paramsGain = postgainParams;
-  cv.(f{i}).(upper).scanCoords = lV2.scanCoords;
+  cv.(f{fi}).(upper).(lower).paramsForward = pregainParams;
+  cv.(f{fi}).(upper).(lower).paramsGain = postgainParams;
+  cv.(f{fi}).(upper).scanCoords = lV2.scanCoords;
 end
 
 if ~ieNotDefined('saveParams')
   CV = cv;
   save('~/Box Sync/LINEAR_RF/crossval_params.mat', 'CV');
-  disp('cv saved to crossval_forwardParams.mat');
+  disp('cv saved to crossval_params.mat');
 end
