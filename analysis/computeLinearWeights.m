@@ -30,8 +30,13 @@ for fi = 1:length(folds_)
 end
 
 %% For each fold
+fout = cell(size(folds));
 parfor fi = 1:length(folds)
-    CV.(folds{fi}) = computeFoldWeights(CV.(folds{fi}),lower,higher);
+    fout{fi} = computeFoldWeights(CV.(folds{fi}),lower,higher);
+end
+
+for fi = 1:length(folds)
+    CV.(folds{fi}) = fout{fi};
 end
 
 function fold = computeFoldWeights(fold,lower,higher)
