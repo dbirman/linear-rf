@@ -40,8 +40,7 @@ rois = {'lV1', 'lV2'};
 %save(fullfile('~/Box Sync/LINEAR_RF/crossval.mat'), 'CV');
 
 %% Run Weights
-CV = load(fullfile('~/Box Sync/LINEAR_RF/crossval.mat'));
-CV = CV.CV;
+load(fullfile('~/Box Sync/LINEAR_RF/crossval.mat'));
 CV = computeLinearWeights(CV,'lV1','lV2');
 save(fullfile('~/Box Sync/LINEAR_RF/crossval_weights.mat'),'CV');
 
