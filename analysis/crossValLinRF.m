@@ -12,8 +12,9 @@ function crossVal = crossValLinRF(roiNames, saveCV)
 % inputs
 scanNum = 2;
 pRFAnalysis = 'pRF.mat';
-%roiNames = {'lV1', 'lV2', 'lV3', 'lV4', 'lV3a', 'lV3b', 'lV7', 'lMT', 'lLO1', 'lLO2'};
-%roiNames = {'lV1', 'lV2'};
+if ieNotDefined('roiNames')
+  roiNames = {'lV1', 'lV2'};
+end
 
 % init mlr and get variables
 v = newView;
@@ -35,7 +36,8 @@ osn2 = viewGet(v, 'originalscannum', osn, ogn{1});
 numScans = length(osn2);
 
 % Load time series data for each MotionComp scan for each ROI
-scans = loadROITSeries(v, roiNames, osn2, ogn2{1},'straightXform=1'); % Length: numScans * numRois
+%scans = loadROITSeries(v, roiNames, osn2, ogn2{1},'straightXform=1'); % Length: numScans * numRois
+scans = loadROITSeries(v, roiNames, osn2, ogn2{1});
 
 % init crossVal struct
 crossVal.numScans = numScans;
@@ -61,10 +63,15 @@ for roiIdx = 1:length(roiNames)
       end
     end
 
+    % Average - divide by number of runs after summing
     train = train./6;
     test = test./2;
 
-    % apply concat filtering to averages & left out
+    % Convert to percent signal change
+    train = percentTSeries(train, 'detrend', 'Linear', 'spatialNormalization', 'Divide by mean', 'subtractMean', 'Yes', 'temporalNormalization', 'No');
+    test = percentTSeries(test, 'detrend', 'Linear', 'spatialNormalization', 'Divide by mean', 'subtractMean', 'Yes', 'temporalNormalization', 'No');
+
+    % apply concat filtering in order to subtract the mean.
     for k = 1:roi_size(1)
       trainFilt(k,:) = applyConcatFiltering(train(k,:), concatInfo, 1);
       testFilt(k,:) = applyConcatFiltering(test(k,:), concatInfo, 1);
