@@ -42,12 +42,14 @@ rois = {'lV1', 'lV2'};
 %% Run Weights
 load(fullfile('~/Box Sync/LINEAR_RF/crossval.mat'));
 CV = computeLinearWeights(CV,'lV1','lV2');
+CV = addMask(CV,'lV1','lV2');
 save(fullfile('~/Box Sync/LINEAR_RF/crossval_weights.mat'),'CV');
 
 
 %% Run Forward Model
 load(fullfile('~/Box Sync/LINEAR_RF/crossval_weights.mat'));
 CV = computeForwardGain(CV,'lV1','lV2',0.1,5,5,5);
+CV = computeGainOverlap(CV,'lV2',5,5,5);
 save(fullfile('~/Box Sync/LINEAR_RF/crossval_forward.mat'),'CV');
 
 

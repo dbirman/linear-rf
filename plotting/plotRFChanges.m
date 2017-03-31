@@ -52,6 +52,7 @@ plot([0 20],[0 20],'--r');
 axis([0 20 0 20]);
 xlabel('Pre width');
 ylabel('Post width');
+
 % plot(x1', rfWidth_pre, '+b'); hold on;
 % plot(x1', rfWidth_post, '*g');
 % legend('pregain width', 'postgain width');
