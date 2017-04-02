@@ -30,16 +30,20 @@ for fi = 1:length(folds_)
 end
 
 %% For each fold
-fout = cell(size(folds));
+parfolds = cell(size(folds));
+disp(sprintf('Starting weight computation for ROIs %s -> %s: %i folds.',lower,higher,length(folds)));
 parfor fi = 1:length(folds)
-    fout{fi} = computeFoldWeights(CV.(folds{fi}),lower,higher);
+    disp(sprintf('Fold: %s',folds{fi}));
+    parfolds{fi} = computeFoldWeights(CV.(folds{fi}),lower,higher);
+    disp(sprintf('Fold: %s complete',folds{fi}));
 end
 
 for fi = 1:length(folds)
-    CV.(folds{fi}) = fout{fi};
+    CV.(folds{fi}) = parfolds{fi};
 end
 
 function fold = computeFoldWeights(fold,lower,higher)
+%% Info
 %% Compute the mapping
 lroi = fold.(lower);
 hroi = fold.(higher);

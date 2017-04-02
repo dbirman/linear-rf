@@ -39,17 +39,40 @@ rois = {'lV1', 'lV2'};
 %CV = crossValLinRF(rois);
 %save(fullfile('~/Box Sync/LINEAR_RF/crossval.mat'), 'CV');
 
+%% Set opts
+% from the standard macaque model it should be:
+% v1* -> v2
+% v1*, v2*, -> v3
+% v1, v2, v3 -> v3a
+% v1*, v2*, v3, v3a -> MT
+% v1, v2, v3, v3a -> V4
+
+% but we'll just do the starred ones (and not combining ROIs like for V3,
+% that's for a future version...)
+opts = {{'lV1','lV2'},{'lV1','lV3'},{'lV2','lV3'},{'lV1','lMT'},{'lV2','lMT'}};
 %% Run Weights
 load(fullfile('~/Box Sync/LINEAR_RF/crossval.mat'));
-CV = computeLinearWeights(CV,'lV1','lV2');
-CV = addMask(CV,'lV1','lV2');
+
+for oi = 1:length(opts)
+    opt = opts{oi};
+    low = opt{1};
+    high = opt{2};
+    CV = computeLinearWeights(CV,low,high);
+    CV = addMask(CV,low,high);
+end
+
 save(fullfile('~/Box Sync/LINEAR_RF/crossval_weights.mat'),'CV');
 
 
 %% Run Forward Model
 load(fullfile('~/Box Sync/LINEAR_RF/crossval_weights.mat'));
-CV = computeForwardGain(CV,'lV1','lV2',0.1,5,5,5);
-CV = computeGainOverlap(CV,'lV2',5,5,5);
+for oi = 1:length(opts)
+    opt = opts{oi};
+    low = opt{1};
+    high = opt{2};
+    CV = computeForwardGain(CV,low,high,0.1,5,3,3);
+    CV = computeGainOverlap(CV,high,5,3,3);
+end
 save(fullfile('~/Box Sync/LINEAR_RF/crossval_forward.mat'),'CV');
 
 
