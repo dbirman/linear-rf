@@ -2,30 +2,48 @@
 %     
 %    purpose: draws changes in receptive field
 %
-%      usage: drawRFchanges(pregainParams, postgainParams)
+%      usage: drawRFchanges(paramsForward, paramsGain)
 %             drawRFchanges()
 %
-function h = plotRFChanges(file, fold, lroi, hroi)
+function h = plotRFChanges(file, lroi, hroi)
 
 %% Load File
 load(file);
 
-%% Pull ROI
-pregainParams = CV.(fold).(hroi).(lroi).paramsForward;
-postgainParams = CV.(fold).(hroi).(lroi).paramsGain;
+%% Identify folds
+
+folds_ = fields(CV);
+folds = {};
+
+for fi = 1:length(folds_)
+    if ~isempty(strfind(folds_{fi},'fold'))
+        folds{end+1} = folds_{fi};
+    end
+end
+%% Average parameters across folds
+paramsForward = zeros(length(folds),size(CV.fold1.(hroi).(lroi).paramsForward,1),size(CV.fold1.(hroi).(lroi).paramsForward,2));
+paramsGain = paramsForward;
+for fi = 1:length(folds)
+    paramsForward(fi,:,:) = CV.(folds{fi}).(hroi).(lroi).paramsForward;
+    paramsGain(fi,:,:) = CV.(folds{fi}).(hroi).(lroi).paramsGain;
+end
+
+%% Average
+paramsForward = squeeze(mean(bootci(1000,@nanmean,paramsForward)));
+paramsGain = squeeze(mean(bootci(1000,@nanmean,paramsGain)));
 
 %% Plot
 
-if ieNotDefined('pregainParams')
-  [pregainParams, postgainParams] = fitRFs(1);
+if ieNotDefined('paramsForward')
+  [paramsForward, paramsGain] = fitRFs(1);
 end
 
 % Draw Receptive Field center changes
 h = figure;
-x1 = pregainParams(:,1); x1 = x1(~isnan(x1));
-y1 = pregainParams(:,2); y1 = y1(~isnan(y1));
-x2 = postgainParams(:,1); x2 = x2(~isnan(x2));
-y2 = postgainParams(:,2); y2 = y2(~isnan(y2));
+x1 = paramsForward(:,1); x1 = x1(~isnan(x1));
+y1 = paramsForward(:,2); y1 = y1(~isnan(y1));
+x2 = paramsGain(:,1); x2 = x2(~isnan(x2));
+y2 = paramsGain(:,2); y2 = y2(~isnan(y2));
 
 quiver(x1,y1,x2-x1,y2-y1 ,'-k','LineWidth', 2, 'MaxHeadSize', 0.5); hold on;
 hline(0,'--k'); 
@@ -40,9 +58,9 @@ drawPublishAxis
 
 % Plot change in RF width
 figure;
-rfWidth_pre = pregainParams(:,3);
+rfWidth_pre = paramsForward(:,3);
 rfWidth_pre = rfWidth_pre(~isnan(rfWidth_pre));
-rfWidth_post = postgainParams(:,3);
+rfWidth_post = paramsGain(:,3);
 rfWidth_post = rfWidth_post(~isnan(rfWidth_post));
 
 % x1 = 1:length(rfWidth_pre);

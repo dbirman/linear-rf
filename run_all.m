@@ -28,11 +28,6 @@ plotCV('~/Box Sync/LINEAR_RF/crossval.mat','lMT');
 %   plotForward
 % Params:
 %   drawRFchanges(preparams,postparams) - Draws RF shift arrows
-% Model comparison:
-plotRFChanges('~/Box Sync/LINEAR_RF/crossval_params.mat','fold1','lV1','lV2');
-plotRFChanges('~/Box Sync/LINEAR_RF/crossval_params.mat','fold2','lV1','lMT');
-plotRFChanges('~/Box Sync/LINEAR_RF/crossval_params.mat','fold3','lV1','lV2');
-plotRFChanges('~/Box Sync/LINEAR_RF/crossval_params.mat','fold4','lV1','lV2');
 %   R^2 plots?
 
 %% Split data up into 4 folds, run pRFFit on each fold to get params, and get the CV struct
@@ -87,6 +82,12 @@ opts = {{'lV1','lV2'},{'lV1','lV3'},{'lV2','lV3'},{'lV1','lMT'},{'lV2','lMT'}};
 %   CV = fitCVpRF(CV, low, high);
 %   save(fullfile('~/Box Sync/LINEAR_RF/crossval_params.mat'), 'CV');
 % end
+
+%% Display pRF changes
+
+for oi = 1:length(opts)
+    plotRFChanges('~/Box Sync/LINEAR_RF/crossval_params.mat',opts{oi}{1},opts{oi}{2});
+end
 
 %% Compare RF Fits
 load(fullfile('~/Box Sync/LINEAR_RF/crossval_params.mat'));
