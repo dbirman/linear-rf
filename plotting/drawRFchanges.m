@@ -1,15 +1,31 @@
 % drawRFchanges
 %     
+%         by: akshay jagadeesh
+%       date: 03/30/2017
 %    purpose: draws changes in receptive field
 %
-%      usage: drawRFchanges(pregainParams, postgainParams)
-%             drawRFchanges()
+%     inputs:
+%             - fold : struct (from crossval_params.mat) containing fit params
+%             - upper : Higher level ROI for which forward pass was computed, e.g. 'lV2'
+%             - lower : Lower level ROI from which forward pass was computed, e.g. 'lV1'
 %
-function drawRFchanges(pregainParams, postgainParams)
+%      usage: 
+%             CV =  load('~/Box Sync/LINEAR_RF/crossval_params.mat');
+%             drawRFchanges(CV.fold1, 'lV2', 'lV1');
+%
+%             drawRFchanges() % defaults to fold1, 'lV2', 'lV1'
+%
+function drawRFchanges(fold, lower, upper)
 
-if ieNotDefined('pregainParams')
-  [pregainParams, postgainParams] = fitRFs(1);
+if ieNotDefined('fold')
+  load('~/Box Sync/LINEAR_RF/crossval_params.mat');
+  fold = CV.fold1;
+  upper = 'lV2';
+  lower = 'lV1';
 end
+
+pregainParams = fold.(upper).(lower).paramsForward;
+postgainParams = fold.(upper).(lower).paramsGain;
 
 % Draw Receptive Field center changes
 figure;
@@ -23,9 +39,8 @@ hline(0,'--k');
 vline(0,'--k');
 whitebg([1 1 1]);
 plot(5,5,'*r', 'MarkerSize', 10);
-xlim([-15 15]);
-ylim([-10 10]);
-title('Change in RF centers with 10% attentional gain');
+axis([-10 10 -5 10]);
+title(sprintf('Change in %s RF centers with 10%% attentional gain', upper));
 xlabel('x position (degrees)'); ylabel('y position (degrees)');
 drawPublishAxis
 
