@@ -59,18 +59,22 @@ opts = {{'lV1','lV2'},{'lV1','lV3'},{'lV2','lV3'},{'lV1','lMT'},{'lV2','lMT'}};
 % 
 % save(fullfile('~/Box Sync/LINEAR_RF/crossval_weights.mat'),'CV');
 
-
 %% Run Forward Model
 % load(fullfile('~/Box Sync/LINEAR_RF/crossval_weights.mat'));
 % for oi = 1:length(opts)
 %     opt = opts{oi};
 %     low = opt{1};
 %     high = opt{2};
-%     CV = computeForwardGain(CV,low,high,0.1,5,3,3);
-%     CV = computeGainOverlap(CV,high,5,3,3);
+%     CV = computeForwardGain(CV,low,high,0.1,5,5,3);
+%     CV = computeGainOverlap(CV,high,5,5,3);
 % end
 % save(fullfile('~/Box Sync/LINEAR_RF/crossval_forward.mat'),'CV');
 
+%% Plot forward model
+
+for oi = 1:length(opts)
+    plotWeights('~/Box Sync/LINEAR_RF/crossval_modelComparison.mat',opts{oi}{1},opts{oi}{2});
+end
 
 %% Get pRF fit params for each of the folds after running forward model
 % load(fullfile('~/Box Sync/LINEAR_RF/crossval_forward.mat'));

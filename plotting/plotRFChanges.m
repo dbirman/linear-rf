@@ -34,10 +34,6 @@ paramsGain = squeeze(mean(bootci(1000,@nanmean,paramsGain)));
 
 %% Plot
 
-if ieNotDefined('paramsForward')
-  [paramsForward, paramsGain] = fitRFs(1);
-end
-
 % Draw Receptive Field center changes
 h = figure;
 x1 = paramsForward(:,1); x1 = x1(~isnan(x1));
