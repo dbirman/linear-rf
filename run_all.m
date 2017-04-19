@@ -19,7 +19,8 @@
 %% Plotting functions
 % Initial:
 %   plotCV - compares intra-fold timeseries, and fold vs. test timeseries
-%plotCV('~/Box Sync/LINEAR_RF/crossval.mat','lV1');
+
+plotCV('~/Box Sync/LINEAR_RF/crossval.mat','lMT');
 %   plotRF - draws original receptive fields
 % Weights:
 %   plotWeights - shows which RFs contribute to which voxel (somehow?)
@@ -27,11 +28,6 @@
 %   plotForward
 % Params:
 %   drawRFchanges(preparams,postparams) - Draws RF shift arrows
-% Model comparison:
-%plotRFChanges('~/Box Sync/LINEAR_RF/crossval_params.mat','fold1','lV1','lV2');
-%plotRFChanges('~/Box Sync/LINEAR_RF/crossval_params.mat','fold2','lV1','lV2');
-%plotRFChanges('~/Box Sync/LINEAR_RF/crossval_params.mat','fold3','lV1','lV2');
-%plotRFChanges('~/Box Sync/LINEAR_RF/crossval_params.mat','fold4','lV1','lV2');
 %   R^2 plots?
 
 %% Split data up into 4 folds, run pRFFit on each fold to get params, and get the CV struct
@@ -63,18 +59,22 @@ opts = {{'lV1','lV2'},{'lV1','lV3'},{'lV2','lV3'},{'lV1','lMT'},{'lV2','lMT'}};
 % 
 % save(fullfile('~/Box Sync/LINEAR_RF/crossval_weights.mat'),'CV');
 
-
 %% Run Forward Model
 % load(fullfile('~/Box Sync/LINEAR_RF/crossval_weights.mat'));
 % for oi = 1:length(opts)
 %     opt = opts{oi};
 %     low = opt{1};
 %     high = opt{2};
-%     CV = computeForwardGain(CV,low,high,0.1,5,3,3);
-%     CV = computeGainOverlap(CV,high,5,3,3);
+%     CV = computeForwardGain(CV,low,high,0.1,5,5,3);
+%     CV = computeGainOverlap(CV,high,5,5,3);
 % end
 % save(fullfile('~/Box Sync/LINEAR_RF/crossval_forward.mat'),'CV');
 
+%% Plot forward model
+
+for oi = 1:length(opts)
+    plotWeights('~/Box Sync/LINEAR_RF/crossval_modelComparison.mat',opts{oi}{1},opts{oi}{2});
+end
 
 %% Get pRF fit params for each of the folds after running forward model
 % load(fullfile('~/Box Sync/LINEAR_RF/crossval_forward.mat'));
@@ -86,6 +86,12 @@ opts = {{'lV1','lV2'},{'lV1','lV3'},{'lV2','lV3'},{'lV1','lMT'},{'lV2','lMT'}};
 %   CV = fitCVpRF(CV, low, high);
 %   save(fullfile('~/Box Sync/LINEAR_RF/crossval_params.mat'), 'CV');
 % end
+
+%% Display pRF changes
+
+for oi = 1:length(opts)
+    plotRFChanges('~/Box Sync/LINEAR_RF/crossval_params.mat',opts{oi}{1},opts{oi}{2});
+end
 
 %% Compare RF Fits
 load(fullfile('~/Box Sync/LINEAR_RF/crossval_params.mat'));
