@@ -24,6 +24,7 @@ v = loadAnalysis(v, ['pRFAnal/' pRFAnalysis]);
 
 % get scan/analysis variables
 analysisParams = viewGet(v, 'analysisparams');
+analysisParams.pRFFit.verbose=0;
 d = viewGet(v, 'd');
 concatInfo = viewGet(v, 'concatInfo');
 scanDims = viewGet(v, 'scanDims');
@@ -36,19 +37,20 @@ osn2 = viewGet(v, 'originalscannum', osn, ogn{1});
 numScans = length(osn2);
 
 % Load time series data for each MotionComp scan for each ROI
-%scans = loadROITSeries(v, roiNames, osn2, ogn2{1},'straightXform=1'); % Length: numScans * numRois
 scans = loadROITSeries(v, roiNames, osn2, ogn2{1});
 
 % init crossVal struct
 crossVal.numScans = numScans;
 leftOut = [1 2; 3 4; 5 6; 7 8];
+%leftOut = nchoosek(1:8,2);
 
 for roiIdx = 1:length(roiNames)
+  disp(sprintf('(crossValLinRF) Computing cross-validated params for ROI: %s', roiNames{roiIdx}));
   firstScan = numScans*(roiIdx-1)+1;
   roi_size = size(scans{firstScan}.tSeries);
   roiCoords = scans{firstScan}.scanCoords;
   for fold = 1:size(leftOut,1)
-    disp(sprintf('Fold %i of %i: Left Out Set = [%i, %i]', fold, size(leftOut,1), leftOut(fold,1), leftOut(fold,2)));
+    disp(sprintf('(crossValLinRF) Fold %i of %i: Left Out Set = [%i, %i]', fold, size(leftOut,1), leftOut(fold,1), leftOut(fold,2)));
     foldStr = sprintf('fold%d',fold);
     crossVal.(foldStr).heldOut = leftOut(fold,:);
     train = zeros(roi_size); trainFilt = zeros(roi_size);
@@ -91,24 +93,25 @@ for roiIdx = 1:length(roiNames)
     pre = gpRFFitTypeParams.prefit;
                     
     % Run pRFFit on trainFilt and get ROI RF params
+    disp(sprintf('(crossValLinRF) Running pRFFit on %d voxels', roi_size(1))); tic;
     parfor i = 1:roi_size(1)
       x = roiCoords(1,i); y = roiCoords(2,i); z = roiCoords(3,i);
       modelFit = pRFFit(v, [], x,y,z, 'tSeries', trainFilt(i,:)', 'stim', d.stim,...
                         'fitTypeParams', analysisParams.pRFFit, 'paramsInfo', d.paramsInfo,...
                         'prefit', pre, 'concatInfo', concatInfo);
       allModelFits(i,:) = modelFit.params;
-      disp(sprintf('Completed fitting voxel %i of %i', i, roi_size(1)));
     end
+    toc;
 
     % Save in crossVal.(foldStr).(roiName).rfParams
     crossVal.(foldStr).(roiNames{roiIdx}).rfParams = allModelFits;
-
   end
 end
 
 if ~ieNotDefined('saveCV')
   CV = crossVal;
   save('~/Box Sync/LINEAR_RF/crossval.mat', 'CV');
+  disp('(crossValLinRF) Saved crossval.mat to Box folder.');
 end
 
 

@@ -40,7 +40,7 @@ vline(0,'--k');
 whitebg([1 1 1]);
 plot(5,5,'*r', 'MarkerSize', 10);
 axis([-10 10 -5 10]);
-title(sprintf('Change in %s RF centers with 10%% attentional gain', upper));
+title(sprintf('Change in %s RF centers with 10%% attentional gain in %s', upper, lower));
 xlabel('x position (degrees)'); ylabel('y position (degrees)');
 drawPublishAxis
 

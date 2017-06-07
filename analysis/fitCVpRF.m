@@ -31,10 +31,12 @@ v = loadAnalysis(v, ['pRFAnal/' pRFAnalysis]);
 concatInfo = viewGet(v, 'concatInfo', scanNum);
 d = viewGet(v, 'd', scanNum);
 analysisParams = viewGet(v, 'analysisParams');
+analysisParams.pRFFit.verbose=0;
 numVoxels = size(cv.fold1.(upper).train,1);
 lV2 = loadROITSeries(v,upper,[],[],'straightXform=1','loadType=none');
 
 % Compute prefit and save it
+disp('Computing prefit');
 prefitParams = analysisParams.pRFFit; prefitParams.prefitOnly=1;
 pre = pRFFit(v, [], lV2.scanCoords(1,1), lV2.scanCoords(2,1), lV2.scanCoords(3,1), 'tSeries', cv.(f{1}).(upper).(lower).tSeries_forward(2,:)',...
                 'stim', d.stim, 'fitTypeParams', prefitParams, 'paramsInfo', d.paramsInfo, 'concatInfo', concatInfo);
@@ -55,6 +57,7 @@ for fi = 1:length(f)
   % run pRFFit and generate RF params for the two time series
   pregainParams = nan(numVoxels,3);
   postgainParams = nan(numVoxels,3);
+  tic
   parfor vi = 1:numVoxels
     disp(sprintf('Voxel %d of %d', vi, numVoxels));
     if ~any(isnan(tSeries_gain))
@@ -70,6 +73,7 @@ for fi = 1:length(f)
       disp('Skipping voxel');
     end
   end
+  toc
 
   cv.(f{fi}).(upper).(lower).paramsForward = pregainParams;
   cv.(f{fi}).(upper).(lower).paramsGain = postgainParams;
